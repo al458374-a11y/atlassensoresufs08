@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas de Sensores - UFS08</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Aplicar la fuente Inter a todo el documento */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para la barra de scroll */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e53e3e; /* red-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c53030; /* red-700 */
+        }
+    </style>
+    <script>
+        // Configuración de Tailwind para el modo oscuro
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'ufs-red': {
+                            500: '#e53e3e',
+                            600: '#c53030',
+                            700: '#9b2c2c',
+                        },
+                        'gray-900': '#1a202c',
+                        'gray-800': '#2d3748',
+                        'gray-700': '#4a5568',
+                        'gray-600': '#718096',
+                    }
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-200 font-inter antialiased min-h-screen">
+
+    <!-- Encabezado -->
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-20"> <!-- CAMBIO: z-10 a z-20 -->
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <!-- Icono SVG (Cambiado a un "Documento de Texto" simple) -->
+                <svg class="w-10 h-10 text-ufs-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+                <h1 class="text-2xl font-bold text-white">
+                    Atlas de Sensores <span class="text-ufs-red-500">UFS08</span>
+                </h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Controles de Filtro -->
+    <div class="container mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-4 gap-4 sticky top-[80px] bg-gray-900 z-10">
+        <!-- Búsqueda -->
+        <div class="md:col-span-2">
+            <label for="search" class="block text-sm font-medium text-gray-400 mb-1">Buscar Sensor</label>
+            <div class="relative">
+                <input type="text" id="search" placeholder="Buscar por ID, nombre, pines, notas..." class="w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-ufs-red-500 focus:border-transparent">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+            </div>
+        </div>
+        <!-- Filtro PCB -->
+        <div>
+            <label for="filter-pcb" class="block text-sm font-medium text-gray-400 mb-1">PCB Conectada</label>
+            <select id="filter-pcb" class="w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-ufs-red-500 focus:border-transparent">
+                <option value="all">Todas las PCBs</option>
+                <!-- Opciones se generarán dinámicamente -->
+            </select>
+        </div>
+        <!-- Filtro Criticidad (QoS) -->
+        <div>
+            <label for="filter-qos" class="block text-sm font-medium text-gray-400 mb-1">Criticidad (QoS)</label>
+            <select id="filter-qos" class="w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-ufs-red-500 focus:border-transparent">
+                <option value="all">Toda Criticidad</option>
+                <!-- Opciones se generarán dinámicamente -->
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabla de Sensores -->
+    <main class="container mx-auto px-4 pb-12">
+        <div class="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1000px]">
+                    <thead class="bg-gray-700 select-none">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Criticidad (QoS)">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-ufs-red-500">Criticidad</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="ID_Sensor">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">ID Sensor</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Nombre / Propósito">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">Nombre / Propósito</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="PCB Conectada">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">PCB Conectada</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Pines Conectados">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">Pines</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Tipo">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">Tipo (CAN)</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Unidades de Lectura">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">Unidades</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                                Ver Más
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="sensor-table-body" class="divide-y divide-gray-700">
+                        <!-- Filas se generarán dinámicamente -->
+                        <!-- Fila de ejemplo de carga -->
+                        <tr>
+                            <td colspan="8" class="text-center p-12 text-gray-500">
+                                <svg class="animate-spin h-8 w-8 text-ufs-red-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="mt-2 block">Cargando sensores...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Detalles Completos -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-start justify-center pt-20 pb-12 overflow-y-auto">
+        <div id="modal-content" class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl m-4 transform transition-all opacity-0 -translate-y-10">
+            <!-- Encabezado del Modal -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-700">
+                <h2 id="modal-title" class="text-xl font-bold text-white">Detalles del Sensor</h2>
+                <button id="modal-close-btn" class="text-gray-500 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Contenido del Modal -->
+            <div id="modal-details" class="p-6 max-h-[70vh] overflow-y-auto">
+                <!-- Detalles se generarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- INICIO: Contenido del CSV ---
+        // El CSV ya no está pegado aquí. Se cargará desde Google Sheets.
+        // --- FIN: Contenido del CSV ---
+
+
+        let allSensors = [];
+        let headers = [];
+        const filters = {
+            search: '',
+            pcb: 'all',
+            qos: 'all'
+        };
+
+        // Variables para el estado de la ordenación
+        let currentSortKey = 'Criticidad (QoS)'; // Ordenar por criticidad por defecto
+        let currentSortDirection = 'desc'; // Descendente por defecto (2, 1, 0)
+
+        /**
+         * Parsea el string CSV a un array de objetos.
+         */
+        function parseCSV(data) {
+            const lines = data.trim().split('\n');
+            if (lines.length === 0) return [];
+
+            // Limpia la línea de cabecera
+            const rawHeaders = lines.shift().split(',');
+            headers = rawHeaders.map(h => h.trim()).filter(h => h); // Filtra cabeceras vacías
+
+            // Regex para parsear CSV que maneja comas dentro de comillas
+            // Captura (grupo 1: entrecomillado) O (grupo 2: no entrecomillado)
+            const csvRegex = /(?:"([^"]*)"|([^,]*))(?:,|$)/g;
+
+            return lines.map(line => {
+                if (!line) return null; // Saltar líneas vacías
+                
+                let values = [];
+                let match;
+                csvRegex.lastIndex = 0; // ¡IMPORTANTE: Resetear el índice del regex!
+
+                // Itera mientras el regex encuentre coincidencias
+                while ((match = csvRegex.exec(line)) && match[0] !== '') {
+                    // El valor es el grupo 1 (entrecomillado) o el grupo 2 (no entrecomillado)
+                    // Si ambos son undefined (ej. línea vacía), usa un string vacío
+                    const value = match[1] !== undefined ? match[1] : (match[2] !== undefined ? match[2] : '');
+                    values.push(value.trim());
+
+                    // Detener si hemos llegado al final de la línea
+                    if (match.index + match[0].length >= line.length) {
+                        // Si la línea termina con una coma, añade un último campo vacío
+                        if (match[0].endsWith(',')) {
+                            values.push('');
+                        }
+                        break;
+                    }
+                }
+
+                const obj = {};
+                headers.forEach((header, index) => {
+                    // Asigna el valor o un string vacío si no hay suficientes valores
+                    obj[header] = values[index] ? values[index] : '';
+                });
+                return obj;
+
+            }).filter(obj => obj !== null && obj.ID_Sensor); // Filtrar líneas nulas o sin ID
+        }
+
+        /**
+         * Carga y parsea los datos desde la URL de Google Sheets publicada.
+         */
+        async function loadDataFromGoogleSheet() {
+            // ▼▼▼ ¡IMPORTANTE! ▼▼▼
+            // Reemplaza esta URL con la URL de tu Google Sheet publicada como CSV
+            const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRZqKoO_Fmdw4DfDqsi2bNHxuHYd7kRZEx9ZPA8Ln6UOCVEJsy1YdL3_HfXF8YBicLcvdT6TvEmPI9/pub?gid=287715931&single=true&output=csv'; 
+            // ▲▲▲ ¡IMPORTANTE! ▲▲▲
+
+            const tableBody = document.getElementById('sensor-table-body');
+            
+            if (googleSheetUrl === 'PEGA_TU_URL_DE_GOOGLE_SHEET_AQUI') {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-12 text-gray-500">
+                    <h3 class="text-lg font-semibold text-white">Configuración Requerida</h3>
+                    <p class="mt-2">Por favor, edita el archivo <code class="text-yellow-400">atlas_sensores.html</code> y reemplaza <code class="text-yellow-400">'PEGA_TU_URL_DE_GOOGLE_SHEET_AQUI'</code> con la URL de tu Google Sheet publicada como CSV.</p>
+                    <p class="mt-2 text-sm">Instrucciones: En Google Sheets, ve a <code class="text-gray-400">Archivo > Compartir > Publicar en la web</code> y publica la hoja como CSV.</p>
+                </td></tr>`;
+                return false; // Detiene la ejecución
+            }
+
+            try {
+                const response = await fetch(googleSheetUrl);
+                if (!response.ok) {
+                    throw new Error(`Error al cargar los datos: ${response.statusText}`);
+                }
+                const csvData = await response.text();
+                allSensors = parseCSV(csvData);
+                return true; // Éxito
+            } catch (error) {
+                console.error('Error al cargar datos de Google Sheets:', error);
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-12 text-gray-500">
+                    <h3 class="text-lg font-semibold text-red-500">Error al Cargar Datos</h3>
+                    <p class="mt-2">No se pudo conectar con la Google Sheet.</p>
+                    <p class="mt-1 text-sm">Verifica que la URL sea correcta y que esté publicada como CSV.</p>
+                </td></tr>`;
+                return false; // Fallo
+            }
+        }
+
+        /**
+         * Obtiene la clase de color para la criticidad (QoS).
+         */
+        function getQosClass(qos) {
+            const level = String(qos).trim();
+            switch (level) {
+                case '2':
+                    return 'bg-red-600 text-red-100'; // Crítico
+                case '1':
+                    return 'bg-yellow-500 text-gray-900'; // Importante
+                case '0':
+                    return 'bg-green-600 text-green-100'; // Informativo
+                default:
+                    return 'bg-gray-600 text-gray-100'; // Desconocido
+            }
+        }
+
+        /**
+         * Renderiza la tabla de sensores basada en los filtros activos.
+         */
+        function renderTable() {
+            const tableBody = document.getElementById('sensor-table-body');
+            if (!tableBody) return;
+
+            const searchTerm = filters.search.toLowerCase();
+
+            const filteredSensors = allSensors.filter(sensor => {
+                // Filtro de PCB
+                if (filters.pcb !== 'all' && sensor['PCB Conectada'] !== filters.pcb) {
+                    return false;
+                }
+                // Filtro de QoS
+                if (filters.qos !== 'all' && sensor['Criticidad (QoS)'] !== filters.qos) {
+                    return false;
+                }
+                // Filtro de Búsqueda
+                if (searchTerm) {
+                    // Busca en todos los valores del objeto
+                    return Object.values(sensor).some(value =>
+                        String(value).toLowerCase().includes(searchTerm)
+                    );
+                }
+                return true;
+            });
+
+            // --- INICIO: Lógica de Ordenación ---
+            if (currentSortKey) {
+                filteredSensors.sort((a, b) => {
+                    let valA = a[currentSortKey] || '';
+                    let valB = b[currentSortKey] || '';
+
+                    // Manejo especial para Criticidad (números)
+                    if (currentSortKey === 'Criticidad (QoS)') {
+                        // Trata los valores no numéricos como -1 para que vayan al fondo (o 0)
+                        const numA = parseInt(valA, 10);
+                        const numB = parseInt(valB, 10);
+                        valA = isNaN(numA) ? -1 : numA;
+                        valB = isNaN(numB) ? -1 : numB;
+                        
+                        const comparison = valA - valB;
+                        return (currentSortDirection === 'asc') ? comparison : -comparison;
+                    } else {
+                        // Ordenación de texto estándar
+                        const comparison = valA.localeCompare(valB, 'es', { sensitivity: 'base' });
+                        return (currentSortDirection === 'asc') ? comparison : -comparison;
+                    }
+                });
+            }
+            // --- FIN: Lógica de Ordenación ---
+
+            // Limpiar tabla
+            tableBody.innerHTML = '';
+
+            if (filteredSensors.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-12 text-gray-500">No se encontraron sensores que coincidan con los filtros.</td></tr>`;
+                return;
+            }
+
+            // Renderizar filas
+            filteredSensors.forEach(sensor => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-700/50 cursor-pointer transition-colors duration-150';
+                tr.dataset.id = sensor.ID_Sensor; // Usar ID para abrir el modal
+
+                const qosClass = getQosClass(sensor['Criticidad (QoS)']);
+                const qosText = sensor['Criticidad (QoS)'] || 'N/A';
+
+                tr.innerHTML = `
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${qosClass}">
+                            QoS ${qosText}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-white">${sensor.ID_Sensor}</div>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-300">${sensor['Nombre / Propósito']}</div>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-300">${sensor['PCB Conectada']}</div>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <code class="text-sm text-yellow-400">${sensor['Pines Conectados']}</code>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <code class="text-sm text-cyan-400">${sensor.Tipo || 'N/A'}</code>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-300">${sensor['Unidades de Lectura'] || 'N/A'}</span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <span class="text-ufs-red-500 hover:text-ufs-red-700">Detalles</span>
+                    </td>
+                `;
+                
+                // Añadir listener para abrir el modal
+                tr.addEventListener('click', () => showModal(sensor.ID_Sensor));
+                
+                tableBody.appendChild(tr);
+            });
+        }
+
+        /**
+         * Popula los dropdowns de filtro con valores únicos del CSV.
+         */
+        function populateFilters() {
+            const pcbFilter = document.getElementById('filter-pcb');
+            const qosFilter = document.getElementById('filter-qos');
+            
+            const pcbs = new Set(allSensors.map(s => s['PCB Conectada']).filter(Boolean));
+            const qosLevels = new Set(allSensors.map(s => s['Criticidad (QoS)']).filter(Boolean));
+
+            pcbs.forEach(pcb => {
+                const option = document.createElement('option');
+                option.value = pcb;
+                option.textContent = pcb;
+                pcbFilter.appendChild(option);
+            });
+
+            // Ordenar QoS de mayor a menor
+            const sortedQos = [...qosLevels].sort((a, b) => b.localeCompare(a));
+            sortedQos.forEach(qos => {
+                const option = document.createElement('option');
+                option.value = qos;
+                option.textContent = `Criticidad ${qos}`;
+                qosFilter.appendChild(option);
+            });
+        }
+
+        /**
+         * Configura los event listeners para los controles de filtro.
+         */
+        function setupFilterListeners() {
+            document.getElementById('search').addEventListener('input', (e) => {
+                filters.search = e.target.value;
+                renderTable();
+            });
+            document.getElementById('filter-pcb').addEventListener('change', (e) => {
+                filters.pcb = e.target.value;
+                renderTable();
+            });
+            document.getElementById('filter-qos').addEventListener('change', (e) => {
+                filters.qos = e.target.value;
+                renderTable();
+            });
+        }
+
+        /**
+         * Configura los event listeners para los encabezados de la tabla (ordenación).
+         */
+        function setupSortListeners() {
+            document.querySelectorAll('th[data-sort-key]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortKey = th.dataset.sortKey;
+                    
+                    if (currentSortKey === sortKey) {
+                        // Si se hace clic en la misma columna, invertir la dirección
+                        currentSortDirection = (currentSortDirection === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        // Si se hace clic en una nueva columna, establecerla como clave y ordenar ascendente
+                        currentSortKey = sortKey;
+                        currentSortDirection = 'asc';
+                    }
+                    
+                    updateSortIcons();
+                    renderTable();
+                });
+            });
+        }
+
+        /**
+         * Actualiza los iconos de flecha (▲/▼) en las cabeceras de la tabla.
+         */
+        function updateSortIcons() {
+            const upArrow = '▲';
+            const downArrow = '▼';
+            
+            document.querySelectorAll('th[data-sort-key]').forEach(th => {
+                const iconSpan = th.querySelector('.sort-icon');
+                if (iconSpan) {
+                    iconSpan.innerHTML = (th.dataset.sortKey === currentSortKey) 
+                        ? (currentSortDirection === 'asc' ? upArrow : downArrow) 
+                        : ''; // Vacío si no es la columna activa
+                }
+            });
+        }
+
+        /**
+         * Muestra el modal con los detalles completos de un sensor.
+         */
+        function showModal(sensorId) {
+            const sensor = allSensors.find(s => s.ID_Sensor === sensorId);
+            if (!sensor) return;
+
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalContent = document.getElementById('modal-content');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDetails = document.getElementById('modal-details');
+
+            modalTitle.textContent = `${sensor.ID_Sensor} - ${sensor['Nombre / Propósito']}`;
+            
+            // --- INICIO: Contenido del Modal ---
+            let detailsHtml = '<dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">';
+            
+            // Genera la lista de detalles
+            headers.forEach(header => {
+                // Excluir claves que no queremos mostrar en la lista
+                if (header === 'ID_Sensor' || header === 'Nombre / Propósito') return;
+
+                const value = sensor[header] || 'N/A';
+                const keyClass = "text-sm font-medium text-gray-400";
+                let valueClass = "text-base text-white";
+
+                if (header === 'Pines Conectados') {
+                    valueClass = "text-base text-yellow-400 font-mono";
+                } else if (header === 'Tipo') {
+                    valueClass = "text-base text-cyan-400 font-mono";
+                } else if (header === 'Criticidad (QoS)') {
+                    // Re-usar el badge de color
+                    const qosClass = getQosClass(value);
+                    valueClass = `px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${qosClass}`;
+                    detailsHtml += `
+                        <div class="py-2">
+                            <dt class="${keyClass}">${header}</dt>
+                            <dd><span class="${valueClass}">QoS ${value}</span></dd>
+                        </div>
+                    `;
+                    return; // Evitar que se añada de nuevo
+                }
+
+                detailsHtml += `
+                    <div class="py-2">
+                        <dt class="${keyClass}">${header}</dt>
+                        <dd class="${valueClass}">${value}</dd>
+                    </div>
+                `;
+            });
+
+            detailsHtml += '</dl>';
+            modalDetails.innerHTML = detailsHtml;
+            // --- FIN: Contenido del Modal ---
+
+            // Mostrar el modal
+            modalBackdrop.classList.remove('hidden');
+            modalContent.classList.remove('opacity-0', '-translate-y-10');
+            modalContent.classList.add('opacity-100', 'translate-y-0');
+        }
+
+        /**
+         * Oculta el modal de detalles.
+         */
+        function hideModal() {
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalContent.classList.remove('opacity-100', 'translate-y-0');
+            modalContent.classList.add('opacity-0', '-translate-y-10');
+            
+            // Esperar a que la animación termine para ocultar el fondo
+            setTimeout(() => {
+                modalBackdrop.classList.add('hidden');
+            }, 300); // 300ms (match transition duration)
+        }
+
+        /**
+         * Inicializa la aplicación.
+         */
+        async function initApp() {
+            // 1. Cargar datos
+            if (await loadDataFromGoogleSheet()) {
+                
+                // 2. Popular los filtros
+                populateFilters();
+                
+                // 3. Renderizar la tabla inicial (ya ordenada por defecto)
+                updateSortIcons(); // Poner el icono por defecto
+                renderTable();
+                
+                // 4. Configurar los listeners de filtros
+                setupFilterListeners();
+
+                // 5. Configurar los listeners de ordenación
+                setupSortListeners();
+
+                // 6. Configurar los listeners del modal
+                document.getElementById('modal-close-btn').addEventListener('click', hideModal);
+                document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+                    // Ocultar solo si se hace clic en el fondo, no en el contenido
+                    if (e.target.id === 'modal-backdrop') {
+                        hideModal();
+                    }
+                });
+            }
+        }
+
+        // Inicia la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
+
