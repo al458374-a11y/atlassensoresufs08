@@ -51,6 +51,7 @@
                         'gray-800': '#2d3748',
                         'gray-700': '#4a5568',
                         'gray-600': '#718096',
+                        'purple-400': '#a78bfa', // Añadido para 'Identificador CAN'
                     }
                 },
             },
@@ -58,7 +59,6 @@
     </script>
 </head>
 <body class="bg-gray-900 text-gray-200 font-inter antialiased min-h-screen">
-
     <!-- Encabezado -->
     <header class="bg-gray-800 shadow-lg sticky top-0 z-20"> <!-- CAMBIO: z-10 a z-20 -->
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -141,15 +141,27 @@
                                     <span class="sort-icon text-gray-400 w-4 text-center"></span>
                                 </div>
                             </th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Tipo">
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Tipo de Sensor">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-gray-300">Tipo (CAN)</span>
+                                    <span class="text-gray-300">Tipo de Sensor</span>
                                     <span class="sort-icon text-gray-400 w-4 text-center"></span>
                                 </div>
                             </th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Unidades de Lectura">
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Identificador CAN">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">ID CAN</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Unidades valor (tras mapeado)">
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-300">Unidades</span>
+                                    <span class="sort-icon text-gray-400 w-4 text-center"></span>
+                                </div>
+                            </th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider group cursor-pointer hover:bg-gray-600 transition-colors" data-sort-key="Departamento">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300">Dpto.</span>
                                     <span class="sort-icon text-gray-400 w-4 text-center"></span>
                                 </div>
                             </th>
@@ -162,7 +174,7 @@
                         <!-- Filas se generarán dinámicamente -->
                         <!-- Fila de ejemplo de carga -->
                         <tr>
-                            <td colspan="8" class="text-center p-12 text-gray-500">
+                            <td colspan="10" class="text-center p-12 text-gray-500">
                                 <svg class="animate-spin h-8 w-8 text-ufs-red-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -201,7 +213,6 @@
         // El CSV ya no está pegado aquí. Se cargará desde Google Sheets.
         // --- FIN: Contenido del CSV ---
 
-
         let allSensors = [];
         let headers = [];
         const filters = {
@@ -209,7 +220,6 @@
             pcb: 'all',
             qos: 'all'
         };
-
         // Variables para el estado de la ordenación
         let currentSortKey = 'Criticidad (QoS)'; // Ordenar por criticidad por defecto
         let currentSortDirection = 'desc'; // Descendente por defecto (2, 1, 0)
@@ -259,7 +269,6 @@
                     obj[header] = values[index] ? values[index] : '';
                 });
                 return obj;
-
             }).filter(obj => obj !== null && obj.ID_Sensor); // Filtrar líneas nulas o sin ID
         }
 
@@ -376,7 +385,7 @@
             tableBody.innerHTML = '';
 
             if (filteredSensors.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-12 text-gray-500">No se encontraron sensores que coincidan con los filtros.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="10" class="text-center p-12 text-gray-500">No se encontraron sensores que coincidan con los filtros.</td></tr>`;
                 return;
             }
 
@@ -408,10 +417,16 @@
                         <code class="text-sm text-yellow-400">${sensor['Pines Conectados']}</code>
                     </td>
                     <td class="px-5 py-4 whitespace-nowrap">
-                        <code class="text-sm text-cyan-400">${sensor.Tipo || 'N/A'}</code>
+                        <code class="text-sm text-cyan-400">${sensor['Tipo de Sensor'] || 'N/A'}</code>
                     </td>
                     <td class="px-5 py-4 whitespace-nowrap">
-                        <span class="text-sm text-gray-300">${sensor['Unidades de Lectura'] || 'N/A'}</span>
+                        <code class="text-sm text-purple-400">${sensor['Identificador CAN'] || 'N/A'}</code>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-300">${sensor['Unidades valor (tras mapeado)'] || 'N/A'}</span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-300">${sensor['Departamento'] || 'N/A'}</span>
                     </td>
                     <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <span class="text-ufs-red-500 hover:text-ufs-red-700">Detalles</span>
@@ -504,8 +519,8 @@
                 const iconSpan = th.querySelector('.sort-icon');
                 if (iconSpan) {
                     iconSpan.innerHTML = (th.dataset.sortKey === currentSortKey) 
-                        ? (currentSortDirection === 'asc' ? upArrow : downArrow) 
-                        : ''; // Vacío si no es la columna activa
+                         ? (currentSortDirection === 'asc' ? upArrow : downArrow) 
+                         : ''; // Vacío si no es la columna activa
                 }
             });
         }
@@ -538,8 +553,10 @@
 
                 if (header === 'Pines Conectados') {
                     valueClass = "text-base text-yellow-400 font-mono";
-                } else if (header === 'Tipo') {
+                } else if (header === 'Tipo de Sensor') {
                     valueClass = "text-base text-cyan-400 font-mono";
+                } else if (header === 'Identificador CAN') {
+                    valueClass = "text-base text-purple-400 font-mono";
                 } else if (header === 'Criticidad (QoS)') {
                     // Re-usar el badge de color
                     const qosClass = getQosClass(value);
